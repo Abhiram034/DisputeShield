@@ -14,6 +14,7 @@
 - [Run locally](#run-locally)
 - [Synthetic data](#synthetic-data)
 - [Configuration](#configuration)
+- [Deploy a demo](#deploy-a-demo)
 - [Tests](#tests)
 - [Repository map](#repository-map)
 - [Security and deployment boundaries](#security-and-deployment-boundaries)
@@ -212,6 +213,16 @@ Configuration is supplied through environment variables. `.env.example` contains
 | `LLM_BASE_URL` | API | Provider API base URL; defaults to `https://api.openai.com/v1` |
 
 The LLM integration is optional; risk assessment, case storage, and policy decisions do not require it.
+
+## Deploy a demo
+
+The repository is a monorepo. Deploy the frontend and API as separate services, with PostgreSQL as a managed database:
+
+1. **API and database on Render:** create a Blueprint from this GitHub repository and use [`render.yaml`](render.yaml). The Blueprint builds the API from the repository-root Docker context, creates PostgreSQL, sets `DATABASE_URL`, and runs migrations as the API starts.
+2. **Frontend on Vercel:** import the same repository and set the project Root Directory to `apps/web`. Add `API_BASE_URL` as an environment variable using the deployed API's HTTPS origin, then deploy. The `/backend/*` rewrite forwards dashboard requests to that API.
+3. **Optional synthetic fixtures:** generate the CSV pack locally and run the fixture loader with the managed database connection string as `DATABASE_URL`. The database name must be `disputeshield`; the loader is additive and idempotent.
+
+The included Render Blueprint selects free demo resources. Render's free web service can sleep after inactivity, and free PostgreSQL expires after 30 days; upgrade the database before expiry if you need to keep its contents ([Render free-tier limits](https://render.com/docs/free)). This deployment is intended for synthetic-data demonstrations only. The API currently has no authentication, so keep real customer or processor data out of it. Use an authenticated gateway or add application authentication before treating it as a shared service.
 
 ## Tests
 
