@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
-import path from "node:path";
 
-const apiBase = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const configuredApiBase = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
+if (process.env.VERCEL && !configuredApiBase) {
+  throw new Error("Set API_BASE_URL to the deployed DisputeShield API URL in Vercel project settings.");
+}
+const apiBase = configuredApiBase || "http://localhost:8000";
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: path.resolve(__dirname, "../.."),
   async rewrites() {
     return [{ source: "/backend/:path*", destination: `${apiBase}/:path*` }];
   },
